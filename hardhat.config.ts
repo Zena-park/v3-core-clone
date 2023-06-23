@@ -3,49 +3,74 @@ import '@nomiclabs/hardhat-etherscan'
 import '@nomiclabs/hardhat-waffle'
 import 'hardhat-typechain'
 
-export default {
+import dotenv from "dotenv" ;
+import { HardhatUserConfig } from "hardhat/types";
+import "hardhat-deploy";
+
+dotenv.config();
+
+const config: HardhatUserConfig = {
+  namedAccounts: {
+    deployer: 0,
+  },
   networks: {
     hardhat: {
-      allowUnlimitedContractSize: false,
     },
-    mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+    titangoerli: {
+      url: 'https://goerli.optimism.tokamak.network',
+      accounts: [`${process.env.PRIVATE_KEY}`],
+      chainId: 5050,
+      gasPrice: 250000,
+      deploy: ['deploy_titan_goerli']
     },
-    ropsten: {
-      url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,
+    titan: {
+      url: 'https://rpc.titan.tokamak.network',
+      accounts: [`${process.env.PRIVATE_KEY}`],
+      chainId: 55004,
+      gasPrice: 250000,
+      deploy: ['deploy_titan']
     },
-    rinkeby: {
-      url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    goerli: {
-      url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    kovan: {
-      url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    arbitrumRinkeby: {
-      url: `https://arbitrum-rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    arbitrum: {
-      url: `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    optimismKovan: {
-      url: `https://optimism-kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    optimism: {
-      url: `https://optimism-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    mumbai: {
-      url: `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
-    polygon: {
-      url: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-    },
+  },
+  deterministicDeployment: (network: string) => {
+    // Skip on hardhat's local network.
+    if (network === "31337") {
+        return undefined;
+    } else {
+      return {
+        factory: "0x4e59b44847b379578588920ca78fbf26c0b4956c",
+        deployer: "0x3fab184622dc19b6109349b94811493bf2a45362",
+        funding: "10000000000000000",
+        signedTx: "0x00",
+      }
+    }
   },
   etherscan: {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    // apiKey: `${process.env.ETHERSCAN_API_KEY}`
+    apiKey: {
+      goerli: `${process.env.ETHERSCAN_API_KEY}`,
+      titangoerli: "abc",
+      titan: "verify"
+    } ,
+    customChains: [
+      {
+        network: "titangoerli",
+        chainId: 5050,
+        urls: {
+          apiURL: "https://goerli.explorer.tokamak.network/api",
+          browserURL: "https://goerli.explorer.tokamak.network"
+        }
+      },
+      {
+        network: "titan",
+        chainId: 55004,
+        urls: {
+          apiURL: "https://explorer.titan.tokamak.network/api",
+          browserURL: "https://explorer.titan.tokamak.network"
+        }
+      }
+    ]
   },
   solidity: {
     version: '0.8.12',
@@ -62,4 +87,7 @@ export default {
       },
     },
   },
-}
+};
+
+export default config;
+
